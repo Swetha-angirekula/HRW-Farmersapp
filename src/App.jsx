@@ -1,79 +1,46 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { Droplets, Sprout, BookOpen, MessageCircle, Bell, TrendingUp, MapPin, Calendar } from "lucide-react";
 
-const LANGS = {
-  en: {
-    title: "HRW Farmer Dashboard",
-    cropSize: "Crop area (acres)",
-    cropType: "Crop type",
-    location: "Location (place)",
-    growthStage: "Growth stage",
-    estimate: "Estimate HRW Plan",
-    concentration: "Recommended H2 concentration (ppm)",
-    volume: "Total spray volume (liters)",
-    pressure: "Recommended spray pressure (bar)",
-    frequency: "Spray frequency",
-    bestTime: "Best time to spray",
-    saveLog: "Save to logbook",
-    viewLog: "View logbook",
-    chatbot: "Chatbot (ask about HRW)",
-    alerts: "Spray Alerts",
-    language: "Language",
-    recommendations: "Crops with good HRW results",
-    projection: "Yield projection (est.)",
-  },
-  hi: {
-    title: "एचआरडब्ल्यू किसान डैशबोर्ड",
-    cropSize: "फसल क्षेत्र (एकड़)",
-    cropType: "फसल प्रकार",
-    location: "स्थान",
-    growthStage: "विकास चरण",
-    estimate: "एचआरडब्ल्यू योजना अनुमान",
-    concentration: "सिफारिश की गई H2 सांद्रता (ppm)",
-    volume: "कुल छिड़काव वॉल्यूम (लीटर)",
-    pressure: "सुझाया गया स्प्रे प्रेशर (bar)",
-    frequency: "स्प्रे आवृत्ति",
-    bestTime: "छिड़काव का सबसे अच्छा समय",
-    saveLog: "लॉगबुक में सहेजें",
-    viewLog: "लॉगबुक देखें",
-    chatbot: "चैटबोट (एचआरडब्ल्यू के बारे में पूछें)",
-    alerts: "स्प्रे अलर्ट",
-    language: "भाषा",
-    recommendations: "फसलें जिनपर अच्छा परिणाम",
-    projection: "उत्पादकता का अनुमान",
-  },
-  es: {
-    title: "Panel HRW para Agricultores",
-    cropSize: "Área de cultivo (acres)",
-    cropType: "Tipo de cultivo",
-    location: "Lugar",
-    growthStage: "Etapa de crecimiento",
-    estimate: "Estimar plan HRW",
-    concentration: "Concentración H2 recomendada (ppm)",
-    volume: "Volumen total de pulverización (L)",
-    pressure: "Presión recomendada (bar)",
-    frequency: "Frecuencia de pulverización",
-    bestTime: "Mejor hora para rociar",
-    saveLog: "Guardar en registro",
-    viewLog: "Ver registro",
-    chatbot: "Chatbot (pregunta sobre HRW)",
-    alerts: "Alertas de pulverización",
-    language: "Idioma",
-    recommendations: "Cultivos con buenos resultados con HRW",
-    projection: "Proyección de rendimiento (est.)",
-  },
+const HRW_KB = {
+  "what is hrw": "HRW (Hydrogen-Rich Water) is water infused with molecular hydrogen (H2). It acts as a selective antioxidant in plants, with H2 concentrations between 0.8-1.6 ppm.",
+  "how": "HRW works by: 1) Acting as antioxidant 2) Regulating gene expression 3) Enhancing photosynthesis 4) Improving water uptake 5) Activating plant defense systems.",
+  "benefits": "Benefits: Enhanced germination (15-30%), stronger roots, stress tolerance, higher yields (20-25%), better disease resistance, improved nutrient uptake.",
+  "application": "Apply via: 1) Foliar spraying (early morning/late afternoon) 2) Seed soaking (12-24 hrs) 3) Root irrigation 4) Hydroponics. Frequency: every 2-7 days.",
+  "concentration": "Optimal H2: Rice 1.0-1.5 ppm, Wheat 0.8-1.2 ppm, Vegetables 0.8-1.0 ppm. Higher isn't always better.",
+  "timing": "Best times: Early morning (5-8 AM) or late afternoon (4-6 PM). Apply during critical stages: germination, transplanting, flowering, fruiting.",
+  "equipment": "Need: H2 generator, dissolving system, storage tank, spray equipment, H2 meter. Use within 24 hours.",
+  "crops": "Best: Rice (excellent), Wheat, Tomato, Cucumber, Lettuce, Strawberry, Soybean. Limited: Potato, Corn.",
+  "cost": "Investment: Small farm $500-$2000, Medium $2000-$8000, Large $8000-$25000. ROI within 1-2 seasons.",
+  "safety": "Completely safe: Non-toxic, no residues, no soil contamination, environmentally friendly. H2 gas is flammable during generation.",
+  "storage": "Use within 24 hours. Store sealed, away from sunlight, 15-25°C. H2 half-life: 2-4 hours in open containers.",
+  "science": "150+ research papers since 2010. H2 reduces oxidative stress 40-60%, increases enzyme activity, improves photosystem efficiency 15-25%.",
+  "fertilizer": "HRW is NOT a fertilizer - it's a growth enhancer. Use alongside regular fertilization. May reduce fertilizer needs by 10-15%.",
+  "drought": "Improves drought tolerance by: reducing water loss, enhancing root depth 30-40%, maintaining photosynthesis. Apply 2-3 days before stress.",
+  "organic": "Perfect for organic farming: no synthetic chemicals, no residues, natural approach. Check local organic certification."
 };
 
-const CROP_RECOMMENDATIONS = {
-  Rice: { works: true, notes: "Improves seedling vigour, stress tolerance" },
-  Wheat: { works: true, notes: "Helps drought stress in trials" },
-  Tomato: { works: true, notes: "Enhances growth & fruit set" },
-  Potato: { works: false, notes: "Limited evidence; pilot only" },
-  Cotton: { works: true, notes: "May reduce oxidative stress" },
-};
+function getResponse(q) {
+  const query = q.toLowerCase();
+  if (query.includes("what") && query.includes("hrw")) return HRW_KB["what is hrw"];
+  if (query.includes("how") || query.includes("work")) return HRW_KB["how"];
+  if (query.includes("benefit") || query.includes("why")) return HRW_KB["benefits"];
+  if (query.includes("spray") || query.includes("apply")) return HRW_KB["application"];
+  if (query.includes("ppm") || query.includes("concentration")) return HRW_KB["concentration"];
+  if (query.includes("when") || query.includes("time")) return HRW_KB["timing"];
+  if (query.includes("equipment") || query.includes("machine")) return HRW_KB["equipment"];
+  if (query.includes("crop") || query.includes("rice") || query.includes("wheat")) return HRW_KB["crops"];
+  if (query.includes("cost") || query.includes("price")) return HRW_KB["cost"];
+  if (query.includes("safe") || query.includes("toxic")) return HRW_KB["safety"];
+  if (query.includes("store") || query.includes("storage")) return HRW_KB["storage"];
+  if (query.includes("research") || query.includes("science")) return HRW_KB["science"];
+  if (query.includes("fertilizer") || query.includes("nutrient")) return HRW_KB["fertilizer"];
+  if (query.includes("drought") || query.includes("stress")) return HRW_KB["drought"];
+  if (query.includes("organic")) return HRW_KB["organic"];
+  return "I can help with: HRW basics, application methods, timing, concentrations, equipment, costs, safety, crops, benefits, and more. What would you like to know?";
+}
 
-// Heuristic calculation
-function computeHRWPlan({ areaAcres, cropType, growthStage, place }) {
+function computeHRWPlan({ areaAcres, cropType, growthStage }) {
   let baseConc = 1.0;
   if (cropType === "Rice") baseConc = 1.2;
   if (cropType === "Tomato") baseConc = 0.8;
@@ -87,262 +54,401 @@ function computeHRWPlan({ areaAcres, cropType, growthStage, place }) {
   let pressure = 2.5;
   if (cropType === "Rice") pressure = 3.0;
 
-  // Crop & stage-specific frequency
-  let frequency = "Once per week";
-  let nextDays = 7;
+  const freqTable = {
+    Rice: { Seedling: 3, Vegetative: 3, Flowering: 4, Maturity: 5 },
+    Wheat: { Seedling: 6, Vegetative: 5, Flowering: 5, Maturity: 6 },
+    Cotton: { Seedling: 7, Vegetative: 6, Flowering: 5, Maturity: 7 },
+    Tomato: { Seedling: 3, Vegetative: 4, Flowering: 3, Maturity: 5 },
+    Potato: { Seedling: 4, Vegetative: 4, Flowering: 3, Maturity: 5 },
+  };
 
- const freqTable = {
-  Rice: { Seedling: 3, Vegetative: 3, Flowering: 4, Maturity: 5 },  // High water
-  Wheat: { Seedling: 6, Vegetative: 5, Flowering: 5, Maturity: 6 }, // Moderate water
-  Cotton: { Seedling: 7, Vegetative: 6, Flowering: 5, Maturity: 7 },// Moderate-low water
-  Tomato: { Seedling: 3, Vegetative: 4, Flowering: 3, Maturity: 5 },// High water
-  Potato: { Seedling: 4, Vegetative: 4, Flowering: 3, Maturity: 5 },// Moderate-high water
-};
-
-
-  if (freqTable[cropType] && freqTable[cropType][growthStage]) {
-    nextDays = freqTable[cropType][growthStage];
-    frequency = `Every ${nextDays} days`;
-  }
-
-  const bestTime = "Early morning (5–8 AM) or late afternoon (4–6 PM)";
-  const totalVolumeLiters = Math.max(0.1, areaAcres) * litersPerAcre;
-
+  const nextDays = freqTable[cropType]?.[growthStage] || 7;
   return {
     concentration_ppm: Number(baseConc.toFixed(2)),
-    total_volume_l: Math.round(totalVolumeLiters),
+    total_volume_l: Math.round(Math.max(0.1, areaAcres) * litersPerAcre),
     pressure_bar: Number(pressure.toFixed(2)),
-    frequency,
-    bestTime,
+    frequency: "Every " + nextDays + " days",
+    bestTime: "Early morning (5-8 AM) or late afternoon (4-6 PM)",
     nextDays,
   };
 }
 
-export default function HRWDashboard() {
-  const [lang, setLang] = useState("en");
-  const t = LANGS[lang];
-
-  const [form, setForm] = useState({ area: 1, crop: "Rice", place: "", stage: "Vegetative" });
-  const [plan, setPlan] = useState(null);
-  const [logbook, setLogbook] = useState([]);
-  const [chat, setChat] = useState([{ who: "bot", text: "Hi! Ask me about HRW plans or crops." }]);
-  const [alerts, setAlerts] = useState([]);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("hrw_logbook_v1");
-    if (stored) setLogbook(JSON.parse(stored));
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("hrw_logbook_v1", JSON.stringify(logbook));
-  }, [logbook]);
-
-  function handleEstimate(e) {
-    e?.preventDefault?.();
-    const input = { areaAcres: Number(form.area), cropType: form.crop, growthStage: form.stage, place: form.place };
-    const p = computeHRWPlan(input);
-    setPlan(p);
-
-    // schedule future alert
-    const nextDate = new Date();
-    nextDate.setDate(nextDate.getDate() + (p.nextDays || 7));
-    const nextAlert = {
-      id: Date.now(),
-      text: `Next spray for ${form.crop}: ${p.frequency}`,
-      when: nextDate.toLocaleString(),
-    };
-    setAlerts((a) => [nextAlert, ...a].slice(0, 10));
-  }
-
-  function saveLog() {
-    if (!plan) return;
-    const entry = { id: Date.now(), form, plan, createdAt: new Date().toISOString() };
-    setLogbook((l) => [entry, ...l]);
-  }
-
-  function sendChat(question) {
-    if (!question) return;
-    setChat((c) => [...c, { who: "user", text: question }]);
-    setTimeout(() => {
-      const reply = `I recommend ${plan ? plan.concentration_ppm + " ppm" : "1.0 ppm"} H2 for ${form.crop}. For precise guidance, run Estimate.`;
-      setChat((c) => [...c, { who: "bot", text: reply }]);
-    }, 600);
-  }
-
-  function exportLogCSV() {
-    const rows = ["id,createdAt,crop,area,concentration_l,volume_l,pressure_bar,frequency,place"].concat(
-      logbook.map((r) => `${r.id},${r.createdAt},${r.form.crop},${r.form.area},${r.plan.concentration_ppm},${r.plan.total_volume_l},${r.plan.pressure_bar},"${r.plan.frequency}",${r.form.place}`)
-    );
-    const blob = new Blob([rows.join("\n")], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "hrw_logbook.csv";
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  const projectionData = Array.from({ length: 6 }).map((_, i) => {
-    if (!plan) return { month: `M${i + 1}`, yield: 0 };
-    let baseGrowth = 5;
-    let cropFactor = { Rice: 1.2, Wheat: 1.1, Tomato: 1.4, Cotton: 1.3 }[form.crop] || 1;
-    let stageFactor = { Seedling: 0.8, Vegetative: 1.0, Flowering: 1.5, Maturity: 1.2 }[form.stage] || 1;
-    let ppmFactor = plan.concentration_ppm / 1.0;
-    let monthlyGrowth = baseGrowth * cropFactor * stageFactor * ppmFactor;
-    let yieldPercent = Math.min(100, Math.round((i + 1) * monthlyGrowth));
-    return { month: `M${i + 1}`, yield: yieldPercent };
-  });
-
-  return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <header className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">{t.title}</h1>
-        <div className="flex items-center gap-2">
-          <label className="text-sm">{t.language}</label>
-          <select className="border rounded p-1" value={lang} onChange={(e) => setLang(e.target.value)}>
-            <option value="en">English</option>
-            <option value="hi">हिंदी</option>
-            <option value="es">Español</option>
-          </select>
-        </div>
-      </header>
-
-      <main className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <section className="col-span-1 lg:col-span-2 bg-white shadow p-4 rounded">
-          <form onSubmit={handleEstimate} className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div>
-              <label className="block text-sm">{t.cropSize}</label>
-              <input type="number" min={0.1} step={0.1} value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })} className="mt-1 w-full border rounded p-2" />
-            </div>
-
-            <div>
-              <label className="block text-sm">{t.cropType}</label>
-              <select value={form.crop} onChange={(e) => setForm({ ...form, crop: e.target.value })} className="mt-1 w-full border rounded p-2">
-                {Object.keys(CROP_RECOMMENDATIONS).map((c) => (<option key={c} value={c}>{c}</option>))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm">{t.location}</label>
-              <input value={form.place} onChange={(e) => setForm({ ...form, place: e.target.value })} className="mt-1 w-full border rounded p-2" />
-            </div>
-
-            <div className="md:col-span-3">
-              <label className="block text-sm">{t.growthStage}</label>
-              <select value={form.stage} onChange={(e) => setForm({ ...form, stage: e.target.value })} className="mt-1 w-full border rounded p-2">
-                <option>Seedling</option>
-                <option>Vegetative</option>
-                <option>Flowering</option>
-                <option>Maturity</option>
-              </select>
-            </div>
-
-            <div className="md:col-span-3 flex gap-2 mt-2">
-              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">{t.estimate}</button>
-              <button type="button" onClick={saveLog} className="px-4 py-2 bg-green-600 text-white rounded">{t.saveLog}</button>
-              <button type="button" onClick={exportLogCSV} className="px-4 py-2 border rounded">Export CSV</button>
-            </div>
-          </form>
-
-          {plan && (
-            <div className="mt-4 bg-gray-50 p-4 rounded">
-              <h3 className="font-semibold mb-2">{t.estimate}</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                <div>
-                  <div className="text-xs">{t.concentration}</div>
-                  <div className="text-lg font-bold">{plan.concentration_ppm} ppm</div>
-                </div>
-                <div>
-                  <div className="text-xs">{t.volume}</div>
-                  <div className="text-lg font-bold">{plan.total_volume_l} L</div>
-                </div>
-                <div>
-                  <div className="text-xs">{t.pressure}</div>
-                  <div className="text-lg font-bold">{plan.pressure_bar} bar</div>
-                </div>
-                <div>
-                  <div className="text-xs">{t.frequency}</div>
-                  <div className="text-lg font-bold">{plan.frequency}</div>
-                </div>
-              </div>
-              <div className="mt-2 text-sm">{t.bestTime}: {plan.bestTime}</div>
-            </div>
-          )}
-
-          <div className="mt-6">
-            <h4 className="font-semibold">{t.recommendations}</h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
-              {Object.entries(CROP_RECOMMENDATIONS).map(([k, v]) => (
-                <div key={k} className={`p-2 border rounded ${v.works ? "bg-green-50" : "bg-red-50"}`}>
-                  <div className="font-medium">{k}</div>
-                  <div className="text-xs">{v.notes}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-6">
-            <h4 className="font-semibold">{t.projection}</h4>
-            <div style={{ height: 180 }} className="mt-2">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={projectionData}>
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="yield" stroke="#8884d8" strokeWidth={2} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </section>
-
-        <aside className="space-y-4">
-          <div className="bg-white shadow p-4 rounded">
-            <h3 className="font-semibold">{t.chatbot}</h3>
-            <div className="h-48 overflow-auto border rounded p-2 mt-2 bg-gray-50">
-              {chat.map((c, i) => (
-                <div key={i} className={`mb-2 ${c.who === "bot" ? "text-left" : "text-right"}`}>
-                  <div className={`inline-block p-2 rounded ${c.who === "bot" ? "bg-white" : "bg-blue-100"}`}>{c.text}</div>
-                </div>
-              ))}
-            </div>
-            <ChatInput onSend={sendChat} />
-          </div>
-
-          <div className="bg-white shadow p-4 rounded">
-            <h3 className="font-semibold">{t.alerts}</h3>
-            <ul className="mt-2 space-y-1 max-h-48 overflow-auto">
-              {alerts.map((a) => (
-                <li key={a.id} className="text-sm border-b pb-1">{a.when} — {a.text}</li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="bg-white shadow p-4 rounded">
-            <h3 className="font-semibold">{t.viewLog}</h3>
-            <div className="max-h-48 overflow-auto mt-2">
-              {logbook.length === 0 && <div className="text-sm text-gray-500">No entries yet.</div>}
-              {logbook.map((e) => (
-                <div key={e.id} className="border rounded p-2 mb-2">
-                  <div className="text-xs text-gray-500">{new Date(e.createdAt).toLocaleString()}</div>
-                  <div className="text-sm font-medium">{e.form.crop} — {e.form.area} acres</div>
-                  <div className="text-xs">{e.plan.concentration_ppm} ppm • {e.plan.total_volume_l} L</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </aside>
-      </main>
-    </div>
-  );
-}
+const CROP_RECOMMENDATIONS = {
+  Rice: { works: true, notes: "Improves seedling vigour", emoji: "🌾" },
+  Wheat: { works: true, notes: "Helps drought stress", emoji: "🌾" },
+  Tomato: { works: true, notes: "Enhances growth", emoji: "🍅" },
+  Potato: { works: false, notes: "Limited evidence", emoji: "🥔" },
+  Cotton: { works: true, notes: "Reduces stress", emoji: "🌿" },
+};
 
 function ChatInput({ onSend }) {
   const [val, setVal] = useState("");
   return (
-    <div className="mt-2 flex gap-2">
-      <input value={val} onChange={(e) => setVal(e.target.value)} placeholder="Ask a question..." className="flex-1 border rounded p-2" />
-      <button onClick={() => { onSend(val); setVal(""); }} className="px-3 py-2 bg-blue-600 text-white rounded">Send</button>
+    <div className="flex gap-2">
+      <input 
+        value={val} 
+        onChange={(e) => setVal(e.target.value)} 
+        onKeyPress={(e) => {
+          if (e.key === "Enter" && val.trim()) {
+            onSend(val);
+            setVal("");
+          }
+        }}
+        placeholder="Ask about HRW..." 
+        className="flex-1 border-2 border-green-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-green-500" 
+      />
+      <button 
+        onClick={() => { 
+          if (val.trim()) {
+            onSend(val); 
+            setVal(""); 
+          }
+        }} 
+        className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 text-sm font-semibold shadow-lg"
+      >
+        Send
+      </button>
+    </div>
+  );
+}
+
+export default function HRWDashboard() {
+  const [activeTab, setActiveTab] = useState("home");
+  const [form, setForm] = useState({ area: "", crop: "Rice", place: "", stage: "Vegetative" });
+  const [plan, setPlan] = useState(null);
+  const [logbook, setLogbook] = useState([]);
+  const [chat, setChat] = useState([{ who: "bot", text: "Hi! Ask me about HRW - application, benefits, timing, equipment, costs, or any crop questions!" }]);
+  const [alerts, setAlerts] = useState([]);
+  const [formErrors, setFormErrors] = useState({});
+
+  function handleEstimate() {
+    const errors = {};
+    if (!form.area || Number(form.area) <= 0) errors.area = true;
+    if (!form.place || form.place.trim() === "") errors.place = true;
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
+    const p = computeHRWPlan({ areaAcres: Number(form.area), cropType: form.crop, growthStage: form.stage });
+    setPlan(p);
+
+    const nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + p.nextDays);
+    setAlerts((a) => [{
+      id: Date.now(),
+      text: "Next spray for " + form.crop + ": " + p.frequency,
+      when: nextDate.toLocaleString(),
+    }, ...a].slice(0, 10));
+  }
+
+  function saveLog() {
+    if (!plan) return;
+    setLogbook((l) => [{ id: Date.now(), form, plan, createdAt: new Date().toISOString() }, ...l]);
+  }
+
+  function sendChat(question) {
+    if (!question.trim()) return;
+    setChat((c) => [...c, { who: "user", text: question }]);
+    setTimeout(() => {
+      setChat((c) => [...c, { who: "bot", text: getResponse(question) }]);
+    }, 600);
+  }
+
+  const projectionData = Array.from({ length: 6 }).map((_, i) => ({
+    month: "M" + (i + 1),
+    yield: plan ? Math.min(100, Math.round((i + 1) * 15)) : 0
+  }));
+
+  const tabs = [
+    { id: "home", label: "Home", icon: Sprout },
+    { id: "planner", label: "Planner", icon: Droplets },
+    { id: "logbook", label: "Logbook", icon: BookOpen },
+    { id: "chat", label: "Chat", icon: MessageCircle },
+    { id: "alerts", label: "Alerts", icon: Bell },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-900 via-green-700 to-emerald-600 relative overflow-hidden">
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-10 left-10 w-32 h-32 bg-yellow-300 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-40 h-40 bg-green-300 rounded-full blur-3xl animate-pulse"></div>
+      </div>
+
+      <div className="p-6 max-w-6xl mx-auto relative z-10">
+        <header className="mb-6 bg-gradient-to-r from-green-800 to-emerald-700 rounded-2xl shadow-2xl p-6 border-2 border-green-600">
+          <div className="flex items-center gap-4">
+            <div className="bg-gradient-to-br from-green-400 to-emerald-600 p-4 rounded-2xl shadow-lg">
+              <Droplets className="w-10 h-10 text-white" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold text-white mb-1">AGRIQUANT</h1>
+              <p className="text-sm text-green-100">Hydrogen-Rich Water Management System</p>
+            </div>
+          </div>
+        </header>
+
+        <div className="bg-white bg-opacity-95 rounded-2xl shadow-2xl overflow-hidden border-2 border-green-600">
+          <div className="flex border-b-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={"flex-1 px-4 py-4 text-sm font-semibold transition-all flex items-center justify-center gap-2 relative " + (activeTab === tab.id ? "text-green-700 bg-white shadow-lg" : "text-gray-600 hover:text-green-600")}
+                >
+                  {activeTab === tab.id && (
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 to-emerald-600"></div>
+                  )}
+                  <Icon className="w-5 h-5" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="p-6">
+            {activeTab === "home" && (
+              <div>
+                <div className="text-center mb-8">
+                  <h2 className="text-4xl font-bold text-green-800 mb-3">Welcome to HRW Farming</h2>
+                  <p className="text-xl text-green-600 font-semibold">Revolutionary Hydrogen-Rich Water Technology</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                  {[
+                    { emoji: "🌾", title: "Rice Fields", desc: "Optimized HRW treatment" },
+                    { emoji: "🍅", title: "Fresh Produce", desc: "Enhanced growth results" },
+                    { emoji: "🌿", title: "Green Farming", desc: "Sustainable agriculture" }
+                  ].map((item, idx) => (
+                    <div key={idx} className="relative overflow-hidden rounded-2xl shadow-2xl border-2 border-green-400 transform hover:scale-105 transition-all">
+                      <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-700 opacity-90"></div>
+                      <div className="relative p-8 text-white">
+                        <div className="text-6xl mb-4 text-center">{item.emoji}</div>
+                        <h3 className="text-2xl font-bold text-center">{item.title}</h3>
+                        <p className="text-sm text-center mt-2 opacity-90">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-2xl p-8 border-2 border-green-400 shadow-xl mb-8">
+                  <h3 className="text-3xl font-bold text-green-800 mb-4">About Hydrogen-Rich Water</h3>
+                  <p className="text-lg text-gray-700 leading-relaxed">HRW is water infused with molecular hydrogen (H2). It enhances plant growth, improves stress tolerance, and increases crop yields through powerful antioxidant properties.</p>
+                </div>
+
+                <div>
+                  <h3 className="text-3xl font-bold text-green-800 mb-6">Key Benefits</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {[
+                      { emoji: "🌱", title: "Enhanced Growth", desc: "Stronger roots and faster growth rates" },
+                      { emoji: "💪", title: "Stress Resistance", desc: "Better drought and environmental resilience" },
+                      { emoji: "📈", title: "Higher Yields", desc: "15-30% productivity increase" },
+                      { emoji: "🌍", title: "Eco-Friendly", desc: "Chemical-free and safe solution" }
+                    ].map((item, idx) => (
+                      <div key={idx} className="bg-white rounded-2xl p-6 border-2 border-green-300 shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all">
+                        <div className="text-4xl mb-3">{item.emoji}</div>
+                        <h4 className="text-xl font-bold text-green-800 mb-2">{item.title}</h4>
+                        <p className="text-gray-600">{item.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "planner" && (
+              <div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-semibold mb-2 text-green-800">
+                      Crop area (acres) <span className="text-red-500">*</span>
+                    </label>
+                    <input 
+                      type="number" 
+                      value={form.area} 
+                      onChange={(e) => {
+                        setForm({ ...form, area: e.target.value });
+                        setFormErrors({ ...formErrors, area: false });
+                      }} 
+                      className={"w-full border-2 rounded-xl p-3 " + (formErrors.area ? "border-red-500" : "border-green-300")}
+                      placeholder="Enter area"
+                    />
+                    {formErrors.area && <p className="text-red-500 text-xs mt-1">Required</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold mb-2 text-green-800">Crop type</label>
+                    <select 
+                      value={form.crop} 
+                      onChange={(e) => setForm({ ...form, crop: e.target.value })} 
+                      className="w-full border-2 border-green-300 rounded-xl p-3"
+                    >
+                      {Object.keys(CROP_RECOMMENDATIONS).map((c) => (<option key={c} value={c}>{c}</option>))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold mb-2 text-green-800">
+                      Location <span className="text-red-500">*</span>
+                    </label>
+                    <input 
+                      value={form.place} 
+                      onChange={(e) => {
+                        setForm({ ...form, place: e.target.value });
+                        setFormErrors({ ...formErrors, place: false });
+                      }} 
+                      className={"w-full border-2 rounded-xl p-3 " + (formErrors.place ? "border-red-500" : "border-green-300")}
+                      placeholder="e.g. Punjab"
+                    />
+                    {formErrors.place && <p className="text-red-500 text-xs mt-1">Required</p>}
+                  </div>
+
+                  <div className="md:col-span-3">
+                    <label className="block text-sm font-semibold mb-2 text-green-800">Growth stage</label>
+                    <select 
+                      value={form.stage} 
+                      onChange={(e) => setForm({ ...form, stage: e.target.value })} 
+                      className="w-full border-2 border-green-300 rounded-xl p-3"
+                    >
+                      <option>Seedling</option>
+                      <option>Vegetative</option>
+                      <option>Flowering</option>
+                      <option>Maturity</option>
+                    </select>
+                  </div>
+
+                  <div className="md:col-span-3 flex gap-3">
+                    <button onClick={handleEstimate} className="px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 font-semibold shadow-lg">
+                      Estimate HRW Plan
+                    </button>
+                    <button onClick={saveLog} className="px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:from-amber-600 hover:to-orange-700 font-semibold shadow-lg">Save to logbook</button>
+                  </div>
+                </div>
+
+                {plan && (
+                  <div className="mb-6 bg-gradient-to-br from-green-50 to-emerald-100 p-6 rounded-2xl border-2 border-green-400 shadow-xl">
+                    <h3 className="font-bold mb-4 text-2xl text-green-800">HRW Plan Results</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="bg-white p-5 rounded-xl shadow-lg border-2 border-green-200">
+                        <div className="text-xs text-green-700 mb-2 font-semibold">H2 concentration (ppm)</div>
+                        <div className="text-3xl font-bold text-green-600">{plan.concentration_ppm}</div>
+                      </div>
+                      <div className="bg-white p-5 rounded-xl shadow-lg border-2 border-blue-200">
+                        <div className="text-xs text-blue-700 mb-2 font-semibold">Spray volume (liters)</div>
+                        <div className="text-3xl font-bold text-blue-600">{plan.total_volume_l}</div>
+                      </div>
+                      <div className="bg-white p-5 rounded-xl shadow-lg border-2 border-purple-200">
+                        <div className="text-xs text-purple-700 mb-2 font-semibold">Spray pressure (bar)</div>
+                        <div className="text-3xl font-bold text-purple-600">{plan.pressure_bar}</div>
+                      </div>
+                      <div className="bg-white p-5 rounded-xl shadow-lg border-2 border-amber-200">
+                        <div className="text-xs text-amber-700 mb-2 font-semibold">Spray frequency</div>
+                        <div className="text-xl font-bold text-amber-600">{plan.frequency}</div>
+                      </div>
+                    </div>
+                    <div className="mt-5 text-sm bg-yellow-100 p-4 rounded-xl border-2 border-yellow-400">
+                      <strong>Best time to spray:</strong> {plan.bestTime}
+                    </div>
+                  </div>
+                )}
+
+                <div className="mb-6">
+                  <h4 className="font-bold text-xl mb-4 text-green-800">Recommended Crops</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    {Object.entries(CROP_RECOMMENDATIONS).map(([k, v]) => (
+                      <div key={k} className={"p-5 border-2 rounded-xl shadow-lg " + (v.works ? "bg-green-50 border-green-400" : "bg-red-50 border-red-400")}>
+                        <div className="text-4xl text-center mb-3">{v.emoji}</div>
+                        <div className="font-bold text-sm text-center">{k}</div>
+                        <div className="text-xs mt-2 text-gray-600 text-center">{v.notes}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-bold text-xl mb-4 text-green-800">Yield projection</h4>
+                  <div style={{ height: 320 }} className="bg-white p-6 rounded-2xl border-2 border-green-300 shadow-lg">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={projectionData}>
+                        <XAxis dataKey="month" />
+                        <YAxis />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="yield" stroke="#16a34a" strokeWidth={3} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "logbook" && (
+              <div>
+                <h3 className="font-bold text-2xl mb-6 text-green-800">View logbook</h3>
+                <div className="space-y-4">
+                  {logbook.length === 0 && (
+                    <div className="text-center py-20 bg-green-50 rounded-2xl border-2 border-dashed border-green-300">
+                      <p className="text-green-700">No entries yet</p>
+                    </div>
+                  )}
+                  {logbook.map((e) => (
+                    <div key={e.id} className="border-2 border-green-300 rounded-2xl p-6 bg-white shadow-lg">
+                      <div className="flex justify-between">
+                        <div>
+                          <div className="text-xs text-green-600 mb-2">{new Date(e.createdAt).toLocaleString()}</div>
+                          <div className="text-xl font-bold">{e.form.crop} — {e.form.area} acres</div>
+                          <div className="text-sm text-gray-600">Stage: {e.form.stage}</div>
+                        </div>
+                        <div className="text-right bg-green-100 p-4 rounded-xl">
+                          <div className="font-bold text-green-700">{e.plan.concentration_ppm} ppm</div>
+                          <div className="text-xs">{e.plan.total_volume_l} L</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activeTab === "chat" && (
+              <div>
+                <h3 className="font-bold text-2xl mb-4 text-green-800">Chat Assistant</h3>
+                <div className="h-96 overflow-auto border-2 border-green-300 rounded-xl p-4 mb-4 bg-gray-50">
+                  {chat.map((c, i) => (
+                    <div key={i} className={"mb-4 " + (c.who === "bot" ? "text-left" : "text-right")}>
+                      <div className={"inline-block p-3 rounded-lg max-w-md " + (c.who === "bot" ? "bg-white border-2 border-green-300" : "bg-green-600 text-white")}>{c.text}</div>
+                    </div>
+                  ))}
+                </div>
+                <ChatInput onSend={sendChat} />
+              </div>
+            )}
+
+            {activeTab === "alerts" && (
+              <div>
+                <h3 className="font-bold text-2xl mb-4 text-green-800">Spray Alerts</h3>
+                <div className="space-y-3">
+                  {alerts.length === 0 && (
+                    <div className="text-center py-20 bg-yellow-50 rounded-2xl border-2 border-dashed border-yellow-300">
+                      <p className="text-yellow-700">No alerts yet</p>
+                    </div>
+                  )}
+                  {alerts.map((a) => (
+                    <div key={a.id} className="border-2 rounded-xl p-4 bg-yellow-50 border-yellow-300">
+                      <div className="flex gap-3">
+                        <div className="text-3xl">⏰</div>
+                        <div>
+                          <div className="font-medium text-sm">{a.text}</div>
+                          <div className="text-xs text-gray-600 mt-1">Scheduled: {a.when}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
